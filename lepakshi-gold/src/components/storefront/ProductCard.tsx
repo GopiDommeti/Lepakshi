@@ -16,13 +16,15 @@ export function ProductCard({ product }: { product: ProductWithVariations }) {
     <Link
       to="/product/$slug"
       params={{ slug: product.slug }}
-      className="oil-card hairline group block overflow-hidden rounded-xl bg-card"
+      className="oil-card oil-card-3d hairline group block overflow-hidden rounded-xl bg-card"
     >
       <div className="aspect-4/5 overflow-hidden bg-cream-100">
         {product.thumbnail_url ? (
           <img
             src={product.thumbnail_url}
             alt={product.name}
+            width={480}
+            height={600}
             loading="lazy"
             className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />

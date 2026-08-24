@@ -19,6 +19,7 @@ import {
 } from "@/components/admin/ui";
 import { simpleListQuery, type EnquiryRow, type FaqRow, type PageRow } from "@/lib/admin";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { dateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -95,8 +96,8 @@ function HomeBlocks() {
 
   const save = useMutation({
     mutationFn: async () => {
-      const upserts = [
-        { key: "home_hero", data: hero, is_active: true, sort_order: 1 },
+      const upserts: { key: string; data: Json; is_active: boolean; sort_order: number }[] = [
+        { key: "home_hero", data: hero as Json, is_active: true, sort_order: 1 },
         { key: "announcement", data: { text: announcement }, is_active: true, sort_order: 0 },
       ];
       for (const row of upserts) {
