@@ -1,123 +1,171 @@
 # Lepakshi Gold
 
-The online store for **Venkateshwara Oil Traders** (Tanuku, West Godavari, Andhra Pradesh) — wood-pressed ganuga edible oils, pressed since 2003.
+Online store for **Venkateshwara Oil Traders** — certified organic, cold-pressed edible oils from Tanuku, Andhra Pradesh, pressing since 2003.
 
-This is a full WooCommerce-equivalent platform: a premium storefront, a complete store backend, and a customer account area.
+Split into two halves:
+
+```
+client/     the storefront and store admin  (React + Vite)
+server/     the API and all business logic  (Express + MySQL)
+database/   schema.sql — import this into Hostinger once
+```
+
+There is no Supabase anywhere. The database is your Hostinger MySQL database, and every rule about who can read or write what now lives in `server/`.
 
 ---
 
-## What's in here
+## 1. Import the database
 
-| Area | Path | What it does |
-|---|---|---|
-| Storefront | `/` | Home, shop, category pages, product pages with pack-size variations, cart, checkout, order tracking, about, contact, policy pages |
-| Store admin | `/admin` | Dashboard, orders, products, categories, attributes, stock, customers, reviews, coupons, shipping, tax, content, media, reports, settings |
-| Account | `/account` | Orders with reorder, addresses, wishlist, reviews, profile |
+hPanel → **Databases → phpMyAdmin** → pick `u750189796_Lepakshi_gold` → **Import** → choose `database/schema.sql` → Go.
 
-### The catalogue model
+Or from a terminal:
 
-Pack sizes are **variations of one product**, not separate products — the WooCommerce model.
-
-```
-Product: "Groundnut Ganuga Oil"
-  └── Pack Size attribute → 500 ml · 1 L · 2 L · 5 L · 15 L Tin
-        └── Variation rows, each with its own SKU, barcode,
-            price, sale price, cost price, weight and STOCK
+```bash
+mysql -h HOST -u u750189796_lepakshi_gold -p u750189796_Lepakshi_gold < database/schema.sql
 ```
 
-Stock lives on the **variation**, never on the product.
+## 2. Point the server at it
 
-### The stock rule
+```bash
+cd server
+cp .env.example .env
+```
 
-Stock changes only through the Postgres function `adjust_stock(variation_id, type, qty, ref_type, ref_id, note)`, which updates the balance and writes an `inventory_movements` row in the same transaction. No client code writes `stock_quantity` directly — that's why the Stock screen has a full audit ledger and the numbers can always be explained.
+Open `server/.env` and fill in the password from hPanel:
 
-### Roles
+```
+DB_HOST=localhost
+DB_NAME=u750189796_Lepakshi_gold
+DB_USER=u750189796_lepakshi_gold
+DB_PASSWORD=your-database-password
+SESSION_SECRET=any-long-random-string
+```
 
-| Role | Can see |
+**Running on your laptop against Hostinger's database?** `localhost` won't reach it. Go to hPanel → **Databases → Remote MySQL**, add your IP address (or `%` while you're testing), then set `DB_HOST` to the MySQL host shown there.
+
+## 3. Install and start
+
+From the project root:
+
+```bash
+npm run install:all
+npm run seed          # loads the organic catalogue, pack sizes, FAQs, pincodes
+npm run dev           # starts the API and the storefront together
+```
+
+| | |
 |---|---|
-| `owner` | Everything, including cost price, profit reports and settings |
+| Storefront | http://localhost:5173 |
+| API | http://localhost:4000 |
+| Is the database connected? | http://localhost:4000/api/health |
+
+Prefer two terminals? `npm run dev:server` and `npm run dev:client`.
+
+## 4. Make yourself the owner
+
+Open http://localhost:5173/auth and create an account. **The first account to register automatically becomes the owner**, which unlocks `/admin`, cost prices and the profit reports. Everyone who registers after that is an ordinary customer until you give them a role in Settings → Users.
+
+---
+
+## How the two halves talk
+
+The browser never touches MySQL. It calls the API, and the API decides what it's allowed to see.
+
+```
+client  ──POST /api/query──▶  server/src/query.js
+                                 ├─ is this table in the allowlist?      tables.js
+                                 ├─ what role is this session?           auth.js
+                                 ├─ build parameterised SQL              query.js
+                                 └─ strip cost_price for non-owners
+```
+
+`client/src/lib/db.ts` gives the screens a familiar `db.from("products").select("*").eq(…)` builder, but it only ever produces a JSON description of the query. The SQL is written on the server, identifiers are checked against the real schema, and every value is a bound parameter — so a table name or column that isn't on the allowlist simply can't be reached from the browser.
+
+**Roles**
+
+| Role | Sees |
+|---|---|
+| `owner` | Everything: cost price, profit reports, settings, staff management |
 | `manager` | Catalogue, orders, stock, coupons, customers, content — no cost price, no settings |
 | `staff` | Orders and fulfilment |
-| customer | Their own account |
+| customer | Their own orders, addresses, wishlist and reviews |
 
-Enforced by RLS in the database, not just hidden in the UI.
+Cost price is removed from the response for anyone below owner. It isn't hidden with CSS — it never leaves the server.
+
+**Stock** only ever changes through `adjustStock()`, which writes the new balance and the ledger row in one transaction. That's why every number on the Stock screen can be explained.
+
+**Pricing** is never trusted from the browser. `POST /api/orders/quote` re-reads prices, stock, coupon rules and shipping from the database on every keystroke at checkout, and `place` runs the whole order — stock, coupon usage, order number — inside a single transaction that rolls back completely if anything fails.
 
 ---
 
-## Running it locally
+## The catalogue model
 
-You need Node.js 20+ ([install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)).
-
-```sh
-npm install
-npm run dev
-```
-
-The dev server prints its URL (Lovable's config uses port **8080**).
-
-`.env` already holds the Supabase project URL and publishable key. For server functions that place orders you also need a **service role key**, which is never committed:
+Pack sizes are **variations of one product**, the way WooCommerce does it:
 
 ```
-SUPABASE_SERVICE_ROLE_KEY="..."
+Product: "Organic Groundnut Oil"
+  └── Pack Size → 500 ml · 1 L · 2 L · 5 L · 15 L Tin
+        └── each with its own SKU, barcode, price, cost and stock
 ```
 
-Add it in Lovable Cloud, or in `.env` locally. Without it, browsing works but checkout will fail.
+In the admin: create the product, tick its pack sizes on the **Variations** tab, press **Generate variations**, set prices, publish.
+
+---
+
+## SEO
+
+An ordinary single-page app is close to invisible to crawlers, so this does the work in two places:
+
+- **`server/src/seo.js`** resolves the route on the server and bakes a real `<title>`, description, canonical, Open Graph, Twitter card and JSON-LD into the HTML *before* it's sent. Product pages get live `Product` schema with price range, stock status and aggregate rating; categories get `CollectionPage`; the home page gets `Organization` + `WebSite` + `FAQPage`. This is what Google and WhatsApp previews actually read. It runs whenever `client/dist` exists — i.e. after `npm run build`.
+- **`client/src/lib/seo.tsx`** keeps the same tags correct while a visitor clicks around.
+
+Also live: `/sitemap.xml` generated from published products and categories on every request, and `/robots.txt` that keeps `/admin`, `/account`, `/checkout` and `/cart` out of the index.
+
+Worth doing before launch: set `SITE_URL` in `server/.env` to your real domain, fill in GSTIN and FSSAI (they print on invoices and feed the Organization schema), and add square product photography — the design leans on it and image search is a real source of traffic.
+
+---
+
+## Motion
+
+`client/src/lib/motion.ts` and the `lg-*` classes at the bottom of `client/src/styles.css`:
+
+- pointer-tracking 3D tilt on the hero bottle and category cards, with a highlight that follows the cursor
+- layered depth (`lg-layer-1/2/3`) so labels and badges sit in front of the glass
+- drifting aurora light, falling oil droplets, a looping name band, sheen sweeps, count-up numbers, scroll reveals
+
+All of it is transform and opacity only, and **all of it stops** under `prefers-reduced-motion`. The bottle is SVG, not a photo, so it stays sharp and costs nothing to load.
+
+---
+
+## Going live on Hostinger
+
+```bash
+npm run build         # builds client/dist
+cd server && npm start
+```
+
+When `client/dist` exists the API serves the built site itself, with SEO tags injected per route — so one Node process runs everything on port 4000. Put it behind your domain and set `NODE_ENV=production`, `SITE_URL=https://yourdomain.com` and a real `SESSION_SECRET`.
+
+**One thing to check:** this needs Node.js. Hostinger's shared/Premium plans run PHP only — Node apps need a VPS or a plan with Node.js support. Your MySQL database works either way; it's the API that needs somewhere to run.
 
 ## Scripts
 
-```sh
-npm run dev      # dev server
-npm run build    # production build
-npm run preview  # preview the build
-npm run lint     # eslint
-npm run format   # prettier
-```
+| Command | Does |
+|---|---|
+| `npm run install:all` | Installs both halves |
+| `npm run dev` | API + storefront together |
+| `npm run seed` | Loads the starting catalogue |
+| `npm run build` | Builds the storefront |
+| `npm start` | Production server |
 
-## Stack
+## Troubleshooting
 
-TanStack Start + TanStack Router (file-based routes, `src/routeTree.gen.ts` is generated — don't edit it) · React 19 · Vite · Tailwind v4 · shadcn/ui · TanStack Query · Recharts · Supabase (Postgres, Auth, Storage, RLS).
+**"Can't reach the server"** — the API isn't running. `npm run dev:server`.
 
-## Layout
+**"Could not reach MySQL"** — check `server/.env`. From a laptop, add your IP under Remote MySQL first.
 
-```
-src/
-  routes/                    file-based routes
-    _authenticated/admin/    the store backend
-    _authenticated/account/  customer account
-  components/
-    admin/                   AdminLayout + shared admin primitives (ui.tsx)
-    storefront/              StoreLayout, CartDrawer, ProductCard, AccountLayout
-  lib/
-    admin.ts                 admin queries and row types
-    catalog.ts               public catalogue queries
-    orders.server.ts         pricing, coupons, shipping, tax
-    orders.server.place.ts   order creation and guest lookup
-    orders.functions.ts      quoteOrder / placeOrder / trackOrder server functions
-supabase/migrations/         schema, RLS and adjust_stock()
-```
+**`/admin` says "Staff access only"** — that account has no role. The first registered account gets `owner`; add roles for others in Settings → Users.
 
----
+**Home page is empty** — run `npm run seed`.
 
-## First-run checklist
-
-1. Add a row to `user_roles` with your user id and role `owner` — otherwise `/admin` stays locked.
-2. **Attributes** → create `Pack Size` with terms 500 ml, 1 L, 2 L, 5 L, 15 L Tin.
-3. **Categories** → add your oil types, each with a square image.
-4. **Products** → create an oil, tick its pack sizes, press *Generate variations*, set prices and cost, publish.
-5. **Shipping** → one "Rest of India" zone with a rate, plus your serviceable pincodes.
-6. **Settings** → store name, address, phone, WhatsApp, GSTIN, FSSAI, order prefix.
-7. Create a public Storage bucket named `media` if you want to upload photos in-app rather than pasting URLs.
-
-## Before going live
-
-- FSSAI number and GSTIN filled in (they print on the invoice).
-- A real serviceable-pincode list — Shiprocket or Delhivery will export one as CSV.
-- Product photography: square crop, plain cream background. The whole design leans on it.
-- Cost price filled in per variation — every profit report depends on it.
-- Razorpay account and keys if you want online payment; COD and UPI work without it.
-
-## Notes
-
-Prices are stored **inclusive of GST** (normal Indian retail practice). The tax component is extracted at checkout and split into CGST/SGST on the invoice.
-
-Online stock is a **separate ledger** from any counter-billing system added later. Nothing here assumes the two are connected.
+**Prices look wrong** — they're stored GST-inclusive (normal Indian retail). Tax is extracted at checkout and split CGST/SGST on the invoice.

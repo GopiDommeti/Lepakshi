@@ -24,7 +24,6 @@ export const Route = createFileRoute("/product/$slug")({
         { property: "og:description", content: "Wood-pressed oil, filtered and packed fresh." },
         { property: "og:type", content: "product" },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "robots", content: "index,follow" },
       ],
     };
   },

@@ -1,0 +1,440 @@
+@import "tailwindcss" source(none);
+@source "../src";
+
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * LEPAKSHI GOLD — design system.
+ * Brand palette lives in :root as oklch tokens and is registered for Tailwind
+ * utilities in @theme inline. Never hardcode colours in components.
+ */
+
+@theme inline {
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  --radius-4xl: 28px;
+
+  --font-display: "Fraunces", ui-serif, Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-telugu: "Noto Sans Telugu", "Inter", sans-serif;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+
+  --color-green-950: var(--green-950);
+  --color-green-900: var(--green-900);
+  --color-green-700: var(--green-700);
+  --color-gold-600: var(--gold-600);
+  --color-gold-500: var(--gold-500);
+  --color-amber-400: var(--amber-400);
+  --color-cream-50: var(--cream-50);
+  --color-cream-100: var(--cream-100);
+  --color-ink-900: var(--ink-900);
+  --color-ink-500: var(--ink-500);
+  --color-line-200: var(--line-200);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  --color-chart-1: var(--green-700);
+  --color-chart-2: var(--gold-500);
+  --color-chart-3: var(--amber-400);
+  --color-chart-4: var(--green-900);
+  --color-chart-5: var(--ink-500);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --ease-brand: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root {
+  --radius: 12px;
+
+  /* brand palette */
+  --green-950: oklch(0.253 0.056 155.5);
+  --green-900: oklch(0.313 0.069 156.4);
+  --green-700: oklch(0.406 0.081 158.2);
+  --gold-600: oklch(0.61 0.099 79.6);
+  --gold-500: oklch(0.716 0.093 84.5);
+  --amber-400: oklch(0.795 0.116 82.6);
+  --cream-50: oklch(0.973 0.019 91.6);
+  --cream-100: oklch(0.943 0.026 88.9);
+  --ink-900: oklch(0.239 0.006 84.6);
+  --ink-500: oklch(0.545 0.011 84.9);
+  --line-200: oklch(0.888 0.026 88.2);
+  --success: oklch(0.523 0.114 152.3);
+  --warning: oklch(0.585 0.128 74.6);
+  --danger: oklch(0.487 0.181 27.9);
+
+  /* semantic */
+  --background: var(--cream-50);
+  --foreground: var(--ink-900);
+  --card: oklch(1 0 0);
+  --card-foreground: var(--ink-900);
+  --popover: oklch(1 0 0);
+  --popover-foreground: var(--ink-900);
+  --primary: var(--green-900);
+  --primary-foreground: var(--cream-50);
+  --secondary: var(--cream-100);
+  --secondary-foreground: var(--green-900);
+  --muted: var(--cream-100);
+  --muted-foreground: var(--ink-500);
+  --accent: var(--gold-500);
+  --accent-foreground: var(--green-950);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--cream-50);
+  --border: var(--line-200);
+  --input: var(--line-200);
+  --ring: var(--gold-500);
+
+  --sidebar: var(--green-950);
+  --sidebar-foreground: var(--cream-100);
+  --sidebar-primary: var(--gold-500);
+  --sidebar-primary-foreground: var(--green-950);
+  --sidebar-accent: var(--green-900);
+  --sidebar-accent-foreground: var(--cream-50);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: var(--gold-500);
+
+  --shadow-soft: 0 2px 12px oklch(0.313 0.069 156.4 / 0.05);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--gold-500);
+    outline-offset: 2px;
+  }
+}
+
+@utility num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility te {
+  font-family: var(--font-telugu);
+}
+
+@utility eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+@utility hairline {
+  border: 1px solid var(--line-200);
+}
+
+/* Signature card interaction: oil rising from the bottom edge. */
+@utility oil-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid var(--line-200);
+  border-radius: var(--radius);
+  transition:
+    transform 400ms var(--ease-brand),
+    border-color 400ms var(--ease-brand),
+    box-shadow 400ms var(--ease-brand);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 70%;
+    z-index: -1;
+    opacity: 0;
+    background: linear-gradient(
+      to top,
+      oklch(0.795 0.116 82.6 / 0.35),
+      oklch(0.795 0.116 82.6 / 0)
+    );
+    transform: translateY(28%);
+    transition:
+      opacity 400ms var(--ease-brand),
+      transform 400ms var(--ease-brand);
+  }
+
+  &:hover,
+  &:focus-within {
+    transform: translateY(-4px);
+    border-color: var(--gold-500);
+    box-shadow: var(--shadow-soft);
+  }
+
+  &:hover::after,
+  &:focus-within::after {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility reveal {
+  animation: reveal-rise 500ms var(--ease-brand) both;
+}
+
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* =====================================================================
+ * MOTION & DEPTH
+ * Every effect here is disabled under prefers-reduced-motion at the end
+ * of this file. Transforms and opacity only, so nothing triggers layout.
+ * ===================================================================== */
+
+@keyframes lg-rise {
+  from { opacity: 0; transform: translate3d(0, 22px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes lg-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50%      { transform: translate3d(0, -14px, 0) rotate(-1.2deg); }
+}
+
+@keyframes lg-aurora {
+  0%   { transform: translate3d(-6%, -4%, 0) scale(1); }
+  33%  { transform: translate3d(4%, 5%, 0) scale(1.12); }
+  66%  { transform: translate3d(6%, -6%, 0) scale(0.95); }
+  100% { transform: translate3d(-6%, -4%, 0) scale(1); }
+}
+
+@keyframes lg-marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to   { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes lg-drop {
+  0%   { opacity: 0; transform: translate3d(0, -10px, 0) scale(0.6); }
+  15%  { opacity: 0.7; }
+  100% { opacity: 0; transform: translate3d(0, 120px, 0) scale(1); }
+}
+
+@keyframes lg-sheen {
+  from { transform: translate3d(-120%, 0, 0) rotate(8deg); }
+  to   { transform: translate3d(320%, 0, 0) rotate(8deg); }
+}
+
+@keyframes lg-spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Scroll reveal — add .lg-reveal, then .is-in when it enters the viewport. */
+.lg-reveal {
+  opacity: 0;
+  transform: translate3d(0, 22px, 0);
+  transition:
+    opacity 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.lg-reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Stagger children of a revealed group. */
+.lg-stagger > * { transition-delay: calc(var(--i, 0) * 70ms); }
+
+/* The 3D stage. Children with .lg-3d tilt inside it. */
+.lg-scene { perspective: 1200px; perspective-origin: 50% 40%; }
+
+.lg-3d {
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) translate3d(0, 0, 0);
+  transform-style: preserve-3d;
+  transition: transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* Layers pushed forward inside a tilting card. */
+.lg-layer-1 { transform: translateZ(28px); }
+.lg-layer-2 { transform: translateZ(56px); }
+.lg-layer-3 { transform: translateZ(84px); }
+
+/* A moving highlight that follows the pointer across a tilted card. */
+.lg-glare::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+  background: radial-gradient(
+    340px circle at var(--glare-x, 50%) var(--glare-y, 50%),
+    color-mix(in oklab, var(--amber-400) 26%, transparent),
+    transparent 62%
+  );
+}
+.lg-glare:hover::after { opacity: 1; }
+
+.lg-float { animation: lg-float 7s ease-in-out infinite; }
+.lg-spin-slow { animation: lg-spin-slow 46s linear infinite; }
+
+/* Soft drifting light behind the hero. */
+.lg-aurora {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(70px);
+  animation: lg-aurora 26s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Oil droplets falling behind the hero bottle. */
+.lg-drop {
+  position: absolute;
+  width: 7px;
+  height: 11px;
+  border-radius: 60% 60% 50% 50% / 70% 70% 40% 40%;
+  background: linear-gradient(
+    to bottom,
+    color-mix(in oklab, var(--amber-400) 85%, transparent),
+    color-mix(in oklab, var(--gold-600) 55%, transparent)
+  );
+  animation: lg-drop 4.4s linear infinite;
+  pointer-events: none;
+}
+
+/* Endless band of oil names. Duplicate the content for a seamless loop. */
+.lg-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: lg-marquee 34s linear infinite;
+}
+.lg-marquee:hover .lg-marquee-track { animation-play-state: paused; }
+
+/* Light sweeping across a button or badge. */
+.lg-sheen { position: relative; overflow: hidden; }
+.lg-sheen::before {
+  content: "";
+  position: absolute;
+  top: -60%;
+  bottom: -60%;
+  width: 34%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, white 34%, transparent),
+    transparent
+  );
+  animation: lg-sheen 4.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Frosted panel used over the dark hero. */
+.lg-glass {
+  background: color-mix(in oklab, var(--cream-50) 8%, transparent);
+  backdrop-filter: blur(14px) saturate(1.2);
+  border: 1px solid color-mix(in oklab, var(--gold-500) 26%, transparent);
+}
+
+/* Gold text that shimmers slowly. */
+.lg-gold-text {
+  background: linear-gradient(
+    100deg,
+    var(--gold-600) 0%,
+    var(--amber-400) 30%,
+    var(--gold-500) 55%,
+    var(--gold-600) 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: lg-marquee 9s linear infinite alternate;
+}
+
+/* Depth on hover for cards that don't tilt. */
+.lg-lift {
+  transition:
+    transform 380ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 380ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lg-lift:hover {
+  transform: translate3d(0, -6px, 0);
+  box-shadow: 0 18px 40px -18px color-mix(in oklab, var(--green-950) 45%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lg-reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .lg-3d { transform: none !important; }
+  .lg-float,
+  .lg-spin-slow,
+  .lg-aurora,
+  .lg-drop,
+  .lg-marquee-track,
+  .lg-sheen::before,
+  .lg-gold-text { animation: none !important; }
+  .lg-lift:hover { transform: none; }
+}
